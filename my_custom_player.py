@@ -76,13 +76,11 @@ def iterative_deepening(self, state):
                  "depth" : 0
                  "state" : None
                  }
-     
-     playerID = self.player_id
         
      """ Iterative Deepening loop """
-        
+    
     for depth in range(1, depth_limit + 1):
-        best_move = mtdf_search(playerID, state, best_move, depth)
+        best_move = mtdf_search(state, best_move, depth)
         
         # Minimax with Alpha-Beta Pruning and Iterative Deepening
         # best_move = alpha_beta_search(playerID, state, depth)
@@ -90,7 +88,7 @@ def iterative_deepening(self, state):
     return best_move
 
 
-def mtdf_search(playerID, state, first_guess, depth):
+def mtdf_search(state, first_guess, depth):
     
     bound = 8 # Maximum Heusistic at any point
     best_move = first_guess
@@ -103,7 +101,7 @@ def mtdf_search(playerID, state, first_guess, depth):
         if best_move["beta"] = lowerbound: 
             window = best_move["beta"] + 1
         
-        best_move = negamax_alpha_beta_TT(playerID, state, window - 1, window, depth)
+        best_move = negamax_alpha_beta_TT(state, window - 1, window, depth)
         
         if best_move < beta  :
             
@@ -118,9 +116,46 @@ def mtdf_search(playerID, state, first_guess, depth):
     
     return best_move
     
+def retrieve(state, depth)
 
-def negamax_alpha_beta_TT
+    
+def alpha_beta_TT(state, alpha, beta, depth, tt)
+ 
+	known_node = None if (tt is None) else tt.retrieve(state)
+    alpha, beta = float("-inf"), float("inf")
+    best_move = None
+    
+    if known_node and known_node['depth'] >= depth:
+      # The current state has been visited at least at the current depth
+      
+      if known_node['alpha'] >= beta: 
+        return known_node['alpha]
+      elif known_node.beta <= alpha:
+      	return known_node['beta']
+                          sim
+      alpha = max(alpha, known_node.alpha)
+      beta = max(beta, known_node.beta)
+            
+  	if state.terminal_test():
+        return state.utility(playerID)
+    
+    if depth <= 0: 
+      	return utility(state, playerID)
+    
+   	val = float("-inf")
+    for action in state.actions():
+        val = -alpha_beta_TT(state.result(action), -alpha, -beta, depth - 1)
 
+        alpha = max(alpha, val)     
+        
+        if val > best_score:
+        	best_score = val
+        	best_move = action
+        
+        if val <= alpha then 
+
+    
+    	
     
 def alpha_beta_search(playerID, state, depth = 2):
     """ Return the legal move (column, row) for the current player

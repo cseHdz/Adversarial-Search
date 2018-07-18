@@ -4,6 +4,12 @@ from isolation.isolation import _WIDTH as board_width, _HEIGHT as board_height, 
 
 LOWERBOUND, EXACT, UPPERBOUND = -1,0,1
 
+class TranspositionTable:
+  
+  	def __init__(self, buckets = 2048):
+    	self.
+  
+
 class CustomPlayer(DataPlayer):
     """ Implement your own agent to play knight's Isolation
 
@@ -49,16 +55,9 @@ class CustomPlayer(DataPlayer):
 
 
         """ Retrieve transposition table """
-        # if self.context:
-        #    tt = self.context
-
-
+		best_move = iterative_deepening(self, state, 4)["best_move"]
 
         self.queue.put(best_move)
-
-        """ Save transposition table """
-        #self.context = tt
-
 
 
 """ Adversarial search Algorithm:
@@ -68,27 +67,6 @@ class CustomPlayer(DataPlayer):
 
 """
 
-def iterative_deepening(self, state):
-
-     depth_limit = 2
-     best_move = {
-                 "alpha" : 1
-                 "beta"  : -1
-                 "depth" : 0
-                 "state" : None
-                 }
-
-     """ Iterative Deepening loop """
-
-    for depth in range(1, depth_limit + 1):
-        best_move = mtdf_search(state, best_move, depth)
-
-        # Minimax with Alpha-Beta Pruning and Iterative Deepening
-        # best_move = alpha_beta_search(playerID, state, depth)
-
-    return best_move
-
-
 
 def retrieve_node(state, depth):
 
@@ -96,10 +74,62 @@ def retrieve_node(state, depth):
 def store_node():
 
 
-def alpha_beta_TT(state, alpha, beta, depth, tt):
+
+def iterative_deepening(self, state, depth_limit = 4):
+
+	if self.context: 
+    	tt = self.context
+    else:
+      	tt = TT()
+        
+	ai_move = {"best_move": state, "best_score": -10}
+
+     """ Iterative Deepening loop """
+
+    for depth in range(1, depth_limit + 1):
+        ai_move = mtdf(state, ai_move, depth, tt, player_ID)
+
+        # Minimax with Alpha-Beta Pruning and Iterative Deepening
+        # best_move = alpha_beta_search(playerID, state, depth)
+    
+    """ Save transposition table """
+    if tt: self.context = tt
+
+    return best_move
+  
+
+def mtdf(state, guess, depth, tt, player_ID):
+    
+    alpha, beta = -10, 10
+    ai_move = guess
+    
+    while alpha < beta:
+      
+    	if ai_move["best_score"] = alpha:
+          	gamma = ai_move["best_score"] + 1
+        else
+        	gamma = ai_move["best_score"]
+        
+        ai_move = negamax_alpha_beta_TT(state, gamma - 1, gamma, depth, tt, player_ID)
+        
+        if ai_move["best_score"] < gamma:
+        	beta = gamma
+        else
+        	alpha = gamma
+          
+    return ai_move
+
+
+def negamax_alpha_beta_TT(state, alpha, beta, depth, tt, player_ID):
 
     """ Return the legal move (column, row) for the current player
     along a branch of the game tree that has the best possible value.
+    
+    Negamax was implemented to simplify alpha-beta pruning as isolation 
+    is a zero-sum game. It was enhanced through a transposition table.
+    
+    Implementation based on: https://homepages.cwi.nl/~paulk/theses/Carolus.pdf
+    
 
     Alpha - Maximum lower bound
     Beta - Minimum upper bound
@@ -127,10 +157,10 @@ def alpha_beta_TT(state, alpha, beta, depth, tt):
             if alpha >= beta:
                 return {"best_move": known_node['state'], "best_score": known_node["score"]}
 
-    node = {"best_move":None, "score": float("-inf")}
+	#	node = {"best_move":None, "score": float("-inf")}
 
   	if state.terminal_test() or if depth <= 0:
-        val = utility(state, playerID) if depth<=0 else state.utility(playerID)
+        val = utility(state, player_ID) if depth<=0 else state.utility(player_ID)
 
         if best_score <= alpha:
             store_node(state, val, LOWERBOUND, depth)
@@ -165,7 +195,7 @@ def alpha_beta_TT(state, alpha, beta, depth, tt):
 
 
 
-def alpha_beta_search(playerID, state, depth = 2):
+def alpha_beta(state, depth = 2, player_ID):
     """ Return the legal move (column, row) for the current player
     along a branch of the game tree that has the best possible value.
 
@@ -181,7 +211,7 @@ def alpha_beta_search(playerID, state, depth = 2):
     best_move = None
 
     for action in state.actions():
-        val = min_value(playerID, state.result(action), alpha, beta, depth - 1)
+        val = min_value(state.result(action), alpha, beta, depth - 1, player_ID)
 
         alpha = max(alpha, val)
         if val > best_score:
@@ -191,7 +221,7 @@ def alpha_beta_search(playerID, state, depth = 2):
     return best_move
 
 
-def min_value(playerID, state, alpha, beta, depth):
+def min_value(state, alpha, beta, depth, player_ID):
     """
     Iterate until the max depth is reached. Then calculate the utility.
 
@@ -216,7 +246,7 @@ def min_value(playerID, state, alpha, beta, depth):
     return val
 
 
-def max_value(playerID, state, alpha, beta, depth):
+def max_value(state, alpha, beta, depth, player_ID):
     """
     Iterate until the max depth is reached. Then calculate the utility.
 

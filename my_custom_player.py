@@ -22,9 +22,9 @@ class CustomPlayer(DataPlayer):
       any pickleable object to the self.context attribute.
     **********************************************************************
     """
-	def __init__(self, player_id):
-    	super().__init__(player_id)
-    	self.tt = self.context if self.context else {}
+    def __init__(self, player_id):
+        super().__init__(player_id)
+        self.tt = self.context if self.context else {}
 
     def get_action(self, state):
         """ Employ an adversarial search technique to choose an action
@@ -43,39 +43,23 @@ class CustomPlayer(DataPlayer):
           Refer to (and use!) the Isolation.play() function to run games.
         **********************************************************************
         """
-        # TODO: Replace the example implementation below with your own search
-        #       method by combining techniques from lecture
-        #
-        # EXAMPLE: choose a random move without any search--this function MUST
-        #          call self.queue.put(ACTION) at least once before time expires
-        #          (the timer is automatically managed for you)
-        # import random
-
-
 
         """ Retrieve transposition table """
         self.tt = self.context
-		best_move = iterative_deepening(state, 4, self.tt)["best_move"]
+        best_move = iterative_deepening(state, 4, self.tt)["best_move"]
 
         # Save the Transposition Table into the Context and put the next move
-		self.context = self.tt if self.tt else None
+        self.context = self.tt if self.tt else None
         self.queue.put(best_move)
-
-
-   	""" Adversarial search Algorithm:
-
-   	Ensure there is always an answer within the time period.
-
-   	"""
-
-  	def retrieve_node(state, tt):
-    	state_ID = state.bitboard_string
+    
+    def retrieve_node(state, tt):
+        state_ID = state.bitboard_string
         zobrist_key = state_ID % HASH_SIZE
 
         return tt[zobrist_key] if tt[zobrist_key] else None
 
 
-  	def store_node(state, score, type, depth, tt):
+    def store_node(state, score, type, depth, tt):
         state_ID = state.bitboard_string
         zobrist_key = state_ID % HASH_SIZE
 
@@ -89,7 +73,7 @@ class CustomPlayer(DataPlayer):
         tt[zobrist_key] = {zobrist_key:node}
 
 
-	def iterative_deepening(self, state, depth_limit = 4, tt = None):
+    def iterative_deepening(self, state, depth_limit = 4, tt = None):
         ai_move = {"best_move": state, "best_score": -10}
 
         """ Iterative Deepening loop """
@@ -108,7 +92,7 @@ class CustomPlayer(DataPlayer):
         ai_move = guess
 
         while alpha < beta:
-            if ai_move["best_score"] = alpha:
+            if ai_move["best_score"] == alpha:
                 gamma = ai_move["best_score"] + 1
             else:
                 gamma = ai_move["best_score"]
@@ -145,13 +129,13 @@ class CustomPlayer(DataPlayer):
             if known_node['depth'] >= depth:
                 # The current state has been visited at least at the current depth
                 type, value = known_node['type'], known_node ["score"]
-            if known_node['type'] = EXACT:
+            if known_node['type'] == EXACT:
                 return {"best_move": known_node['state'], "best_score": known_node["score"]}
 
-           	if known_node['type'] = LOWERBOUND and known_node['score'] > alpha:
+            if known_node['type'] == LOWERBOUND and known_node['score'] > alpha:
                 alpha = known_node['score']
 
-            elif known_node["type"] = UPPERBOUND and known_node["score"] < beta:
+            elif known_node["type"] == UPPERBOUND and known_node["score"] < beta:
                 beta = known_node["score"]
 
             if alpha >= beta:
@@ -159,7 +143,7 @@ class CustomPlayer(DataPlayer):
 
         #	node = {"best_move":None, "score": float("-inf")}
 
-        if state.terminal_test() or if depth <= 0:
+        if state.terminal_test() or depth <= 0:
             val = utility(state, player_ID) if depth<=0 else state.utility(player_ID)
 
             if best_score <= alpha: type = LOWERBOUND

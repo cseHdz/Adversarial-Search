@@ -47,7 +47,7 @@ class CustomPlayer(DataPlayer):
             self.queue.put(random.choice(state.actions()))
         else:
             tt = self.context if self.context else {}
-            depth_limit = 3
+            depth_limit = 5
             guess = 2
             for depth in range(1, depth_limit + 1):
                 best_move = self._mtdf(state, guess, depth, tt)
@@ -57,69 +57,60 @@ class CustomPlayer(DataPlayer):
     def _mtdf(self, state, guess, depth = 4, tt = None):
 
         self.tt = tt
-        def store_node(state, alpha, beta, depth):
+
+        def store_node(state, lower, upper, depth):
             zobrist_key = int(state.board % HASH_SIZE)
-            node = {'alpha':alpha,
-                    'beta':beta,
-                    'depth':depth}
+            node = {'lower':lower,
+                    'upper':upper,
+                    'depth':depth,}
             self.tt[zobrist_key] = node
 
         def retrieve_node(state):
             zobrist_key = int(state.board % HASH_SIZE)
             return None if not(zobrist_key in self.tt.keys()) else self.tt[zobrist_key]
 
-        def check_TT(state, alpha, beta, depth):
-            node = retrieve_node(state)
-            if not(node is None):
-                if node['depth'] >= depth:
-                    return (node['alpha'], node['beta'])
-            return (None, None)
-
-        def alpha_beta_TT(state, alpha, beta, depth):
+        def _mt(state, gamma, depth):
             if not(self.tt is None):
-                a, b = check_TT(state, alpha, beta, depth)
-                if a or b:
-                    if a == b: return b
-                    if b <= alpha: return b
-                    if a >= beta: return a
-                    alpha = max(a, alpha)
+                node = retrieve_node(state)
+                if node != None:
+                    lower, upper = node['lower'], node['upper']
+                    if lower == upper: return upper
+                    if lower > gamma: return lower
+                    if upper < gamma: return upper
+
+            value = float("-inf")
+
             if state.terminal_test() or depth <= 0:
                 value = state.utility(self.player_id) if state.terminal_test() else  self.utility(state)
-                a, b = value, value
+                lower = upper = value
             else:
-                value = -1000
-                a = alpha
                 for action in state.actions():
-                    value = max(value, -alpha_beta_TT(state.result(action), -beta, -a, depth - 1))
-                    a = max (a, value)
-                    b = beta
-                    if value >= beta: break
+                    if value >= gamma: break
+                    value = -mt(state.result(action), -gamma, depth - 1)
+                if value < gamma: upper = value
+                else: lower = value
 
-            if value <= alpha: b = value
-            elif alpha < value and value < beta: a,b = value, value
-            elif value >= beta: a = value
-
-            if not(self.tt is None): store_node(state, a, b, depth)
+            if not(self.tt is None):
+                store_node(state, lower, upper, depth)
             return value
 
-
         def AB_SSS(state, depth):
-            value = 1000
+            value = float("inf")
             gamma = 0
             while value < gamma:
                 gamma = value
-                value = alpha_beta_TT(state, gamma - 1, gamma, depth)
+                value = _mt(state, gamma - 1, depth)
             return value
 
-        def mtdf(state, guess, depth):
-            value = guess
-            alpha, beta = -1000, 1000
-            while alpha < beta:
-                if value == alpha: gamma = value + 1
+        def mtdf(state, first, depth):
+            value = first
+            lower, upper = float("-inf"), float("inf")
+            while lower < upper:
+                if value == lower: gamma = value + 1
                 else: gamma = value
-                value = alpha_beta_TT(state, gamma - 1, gamma, depth)
-                if value < gamma: beta = value
-                else: alpha = value
+                value = _mt(state, gamma - 1, depth)
+                if value < gamma: upper = value
+                else: lower = value
             return value
 
         return max(state.actions(), key=lambda x: mtdf(state.result(x), guess, depth - 1))

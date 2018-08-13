@@ -2,7 +2,7 @@
 from sample_players import DataPlayer
 import random
 
-HASH_SIZE = 10000000
+HASH_SIZE = 8192
 
 class CustomPlayer(DataPlayer):
     """ Implement your own agent to play knight's Isolation
@@ -47,16 +47,17 @@ class CustomPlayer(DataPlayer):
             self.queue.put(random.choice(state.actions()))
         else:
             tt = self.context if self.context else {}
-            depth_limit = 3
-            guess = 2
+            depth_limit = 5
+            guess = -1
             for depth in range(1, depth_limit + 1):
                 best_move = self._mtdf(state, guess, depth, tt)
-                self.queue.put(best_move)
             self.context = tt if tt else None
+            self.queue.put(best_move)
 
     def _mtdf(self, state, guess, depth = 4, tt = None):
 
         self.tt = tt
+
         def store_node(state, alpha, beta, depth):
             zobrist_key = int(state.board % HASH_SIZE)
             node = {'alpha':alpha,
@@ -75,41 +76,49 @@ class CustomPlayer(DataPlayer):
                     return (node['alpha'], node['beta'])
             return (None, None)
 
-        def alpha_beta_TT(state, alpha, beta, depth):
+        def min_value(state, alpha, beta, depth):
             if not(self.tt is None):
                 a, b = check_TT(state, alpha, beta, depth)
-                if a or b:
-                    if a == b: return b
-                    if b <= alpha: return b
+                if a and b:
                     if a >= beta: return a
-                    alpha = max(a, alpha)
+                    if b <= alpha: return b
+                    beta = max(beta, b)
+                    alpha = max(alpha, a)
             if state.terminal_test() or depth <= 0:
                 value = state.utility(self.player_id) if state.terminal_test() else  self.utility(state)
-                a, b = value, value
+                alpha = beta = value
             else:
-                value = -1000
-                a = alpha
+                value = float("inf")
                 for action in state.actions():
-                    value = max(value, -alpha_beta_TT(state.result(action), -beta, -a, depth - 1))
-                    a = max (a, value)
-                    b = beta
-                    if value >= beta: break
-
-            if value <= alpha: b = value
-            elif alpha < value and value < beta: a,b = value, value
-            elif value >= beta: a = value
-
-            if not(self.tt is None): store_node(state, a, b, depth)
+                    value = min(value, max_value(state.result(action), alpha, beta, depth - 1))
+                    if value <= alpha: return value
+                    beta = min(beta, value)
+            if not(self.tt is None): store_node(state, alpha, beta, depth)
             return value
 
-
-        def AB_SSS(state, depth):
-            value = 1000
-            gamma = 0
-            while value < gamma:
-                gamma = value
-                value = alpha_beta_TT(state, gamma - 1, gamma, depth)
+        def max_value(state, alpha, beta, depth):
+            if not(self.tt is None):
+                value = check_TT(state, alpha, beta, depth)
+                if not(value is None): return value
+            if state.terminal_test() or depth <= 0:
+                value = state.utility(self.player_id) if state.terminal_test() else  self.utility(state)
+                alpha = beta = value
+            else:
+                value = float("-inf")
+                for action in state.actions():
+                    value = max(value, min_value(state.result(action), alpha, beta, depth - 1))
+                    if value >= beta: return value
+                    alpha = max(alpha, value)
+            if not(self.tt is None): store_node(state, alpha, beta, depth)
             return value
+
+        def alpha_beta(state, alpha, beta, depth):
+            value = float("-inf")
+            for action in state.actions():
+                value = max(value, min_value(state.result(action), alpha, beta, depth))
+            return value
+
+        def alpha_beta_TT(state, alpha, beta, depth):
 
         def mtdf(state, guess, depth):
             value = guess
@@ -117,7 +126,7 @@ class CustomPlayer(DataPlayer):
             while alpha < beta:
                 if value == alpha: gamma = value + 1
                 else: gamma = value
-                value = alpha_beta_TT(state, gamma - 1, gamma, depth)
+                value = alpha_beta(state, gamma - 1, gamma, depth)
                 if value < gamma: beta = value
                 else: alpha = value
             return value

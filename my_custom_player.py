@@ -54,7 +54,7 @@ class CustomPlayer(DataPlayer):
                 self.queue.put(best_move)
             self.context = tt if tt else None
 
-    def _mtdf(self, state, guess, depth = 4, tt = None):
+    def _mtdf(self, state, guess, depth = 3, tt = None):
 
         self.tt = tt
 

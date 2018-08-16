@@ -52,7 +52,7 @@ class CustomPlayer(DataPlayer):
             for depth in range(1, depth_limit + 1):
                 best_move = self._mtdf(state, guess, depth, tt) if not baseline_flag else self._alpha_beta(state, depth)
                 self.queue.put(best_move)
-            self.context = tt if tt else None
+            if not baseline_flag: self.context = tt if tt else None
 
     def _alpha_beta(self, state, depth):
 

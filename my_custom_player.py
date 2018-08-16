@@ -41,18 +41,43 @@ class CustomPlayer(DataPlayer):
           Refer to (and use!) the Isolation.play() function to run games.
         **********************************************************************
         """
-
-        """ Retrieve transposition table """
+        baseline_flag = 1
         if state.ply_count < 2:
             self.queue.put(random.choice(state.actions()))
         else:
-            tt = self.context if self.context else {}
+
+            if not baseline_flag: tt = self.context if self.context else {}
             depth_limit = 5
             guess = 2
             for depth in range(1, depth_limit + 1):
-                best_move = self._mtdf(state, guess, depth, tt)
+                best_move = self._mtdf(state, guess, depth, tt) if not baseline_flag else self._alpha_beta(state, depth)
                 self.queue.put(best_move)
             self.context = tt if tt else None
+
+    def _alpha_beta(self, state, depth):
+
+        def min_value(state, alpha, beta, depth):
+            if state.terminal_test(): return state.utility(self.player_id)
+            if depth <= 0: return self.utility(state)
+            value = float("inf")
+            for action in state.actions():
+                value = min(value, max_value(state.result(action), alpha, beta, depth - 1))
+                if value <= alpha: return value
+                beta = min(beta, value)
+            return value
+
+        def max_value(state, alpha, beta, depth):
+
+            if state.terminal_test(): return state.utility(self.player_id)
+            if depth <= 0: return self.utility(state)
+            value = float("-inf")
+            for action in state.actions():
+                value = max(value, min_value(state.result(action), alpha, beta, depth - 1))
+                if value >= beta: return value
+                alpha = max(alpha, value)
+            return value
+
+        return max(state.actions(), key=lambda x: min_value(state.result(x), float("-inf"), float("inf"), depth - 1))
 
     def _mtdf(self, state, guess, depth = 3, tt = None):
 

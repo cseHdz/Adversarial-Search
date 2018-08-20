@@ -41,18 +41,20 @@ class CustomPlayer(DataPlayer):
           Refer to (and use!) the Isolation.play() function to run games.
         **********************************************************************
         """
-        baseline_flag = 1
+        baseline_flag = 0
         if state.ply_count < 2:
             self.queue.put(random.choice(state.actions()))
         else:
 
-            if not baseline_flag: tt = self.context if self.context else {}
-            depth_limit = 5
-            guess = 2
+            depth_limit = 9
+            guess = 5
+
+            if not baseline_flag : tt = self.context if self.context else {}
+
             for depth in range(1, depth_limit + 1):
                 best_move = self._mtdf(state, guess, depth, tt) if not baseline_flag else self._alpha_beta(state, depth)
                 self.queue.put(best_move)
-            if not baseline_flag: self.context = tt if tt else None
+                if not baseline_flag : self.context = tt
 
     def _alpha_beta(self, state, depth):
 
@@ -67,7 +69,6 @@ class CustomPlayer(DataPlayer):
             return value
 
         def max_value(state, alpha, beta, depth):
-
             if state.terminal_test(): return state.utility(self.player_id)
             if depth <= 0: return self.utility(state)
             value = float("-inf")
@@ -95,6 +96,7 @@ class CustomPlayer(DataPlayer):
             return None if not(zobrist_key in self.tt.keys()) else self.tt[zobrist_key]
 
         def _mt(state, gamma, depth):
+            #self.context = tt
             if not(self.tt is None):
                 node = retrieve_node(state)
                 if node != None:

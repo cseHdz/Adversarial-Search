@@ -12,12 +12,12 @@ The objective is to build an adversarial game playing agent to play knights Isol
 
 
 This implementation covers across multiple versions of game playing agent: 
-    1. Minimax with Alpha-Beta prunning
-    2. Iterative Deepening
-    3. Alpha-Beta with Transpoition Tables
-    4. Negamax Alpha Beta
-    5. AB-SSS
-    6. MTD-(f)
+1. Minimax with Alpha-Beta prunning
+2. Iterative Deepening
+3. Alpha-Beta with Transpoition Tables
+4. Negamax Alpha Beta
+5. AB-SSS
+6. MTD-(f)
 
 The detailed instructions from the Assignment are below.
 
